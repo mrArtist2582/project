@@ -1,0 +1,321 @@
+Muster Dekho LinkedIn-Clone Implementation Plan
+Project Architecture Overview
+Frontend Architecture (Flutter)
+lib/
+├── main.dart
+├── config/
+│   ├── routes.dart
+│   ├── themes.dart
+│   └── constants.dart
+├── models/
+│   ├── user.dart
+│   ├── post.dart
+│   └── comment.dart
+├── services/
+│   ├── api_service.dart
+│   ├── auth_service.dart
+│   └── storage_service.dart
+├── providers/
+│   ├── auth_provider.dart
+│   ├── post_provider.dart
+│   └── user_provider.dart
+├── screens/
+│   ├── auth/
+│   │   ├── login_screen.dart
+│   │   └── register_screen.dart
+│   ├── home/
+│   │   ├── home_screen.dart
+│   │   └── feed_widget.dart
+│   ├── profile/
+│   │   ├── profile_screen.dart
+│   │   └── edit_profile_screen.dart
+│   ├── post/
+│   │   ├── create_post_screen.dart
+│   │   ├── post_detail_screen.dart
+│   │   └── edit_post_screen.dart
+│   └── search/
+│       └── search_screen.dart
+└── widgets/
+    ├── post_card.dart
+    ├── comment_widget.dart
+    ├── user_avatar.dart
+    └── common/
+        ├── custom_button.dart
+        ├── custom_text_field.dart
+        └── loading_indicator.dart
+Backend Architecture (Spring Boot)
+src/
+├── main/
+│   ├── java/
+│   │   └── com/musterdekho/
+│   │       ├── MusterDekhoApplication.java
+│   │       ├── config/
+│   │       │   ├── SecurityConfig.java
+│   │       │   ├── JwtConfig.java
+│   │       │   └── WebConfig.java
+│   │       ├── controllers/
+│   │       │   ├── AuthController.java
+│   │       │   ├── UserController.java
+│   │       │   ├── PostController.java
+│   │       │   └── CommentController.java
+│   │       ├── models/
+│   │       │   ├── User.java
+│   │       │   ├── Post.java
+│   │       │   └── Comment.java
+│   │       ├── repositories/
+│   │       │   ├── UserRepository.java
+│   │       │   ├── PostRepository.java
+│   │       │   └── CommentRepository.java
+│   │       ├── services/
+│   │       │   ├── UserService.java
+│   │       │   ├── PostService.java
+│   │       │   ├── CommentService.java
+│   │       │   └── JwtService.java
+│   │       ├── dtos/
+│   │       │   ├── UserDto.java
+│   │       │   ├── PostDto.java
+│   │       │   └── CommentDto.java
+│   │       └── exceptions/
+│   │           ├── GlobalExceptionHandler.java
+│   │           └── ResourceNotFoundException.java
+│   └── resources/
+│       ├── application.properties
+│       └── db/
+│           └── migration/
+└── test/
+    └── java/
+        └── com/musterdekho/
+            ├── controllers/
+            ├── services/
+            └── repositories/
+Database Schema
+sql-- Users Table
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    headline VARCHAR(255),
+    about TEXT,
+    profile_image VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Skills Table
+CREATE TABLE skills (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    skill_name VARCHAR(100) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Posts Table
+CREATE TABLE posts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Comments Table
+CREATE TABLE comments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Post Reactions Table
+CREATE TABLE post_reactions (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    reaction_type ENUM('LIKE', 'DISLIKE') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_post_reaction (user_id, post_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+Implementation Plan
+Phase 1: Project Setup & Authentication (Days 1-2)
+Backend Tasks:
+
+Set up Spring Boot project with required dependencies
+Configure MySQL database connection
+Implement User model and repository
+Create JWT authentication with Spring Security
+Develop auth controller with register/login endpoints
+Write unit tests for authentication service
+
+Frontend Tasks:
+
+Initialize Flutter project with basic structure
+Create login and registration screens
+Implement auth service for API communication
+Set up state management for authentication
+Create JWT storage and retrieval mechanism
+Add form validation for auth screens
+
+Phase 2: Profile Management (Days 3-4)
+Backend Tasks:
+
+Implement User service and controller for profile management
+Create endpoints for profile CRUD operations
+Implement Skills model and repository
+Add validation and error handling
+Write unit tests for profile services
+
+Frontend Tasks:
+
+Design and implement profile screen
+Create edit profile screen with form validation
+Implement skills management interface
+Connect to backend API for profile operations
+Add image upload functionality for profile pictures
+
+Phase 3: Post Management (Days 4-5)
+Backend Tasks:
+
+Implement Post model, repository, and service
+Create endpoints for post CRUD operations
+Implement pagination for post retrieval
+Add search functionality for posts
+Write unit tests for post services
+
+Frontend Tasks:
+
+Design post card widget
+Create post creation and editing screens
+Implement post detail view
+Add delete confirmation dialogs
+Connect to backend API for post operations
+
+Phase 4: Interactions & Feed (Day 6)
+Backend Tasks:
+
+Implement Comment model, repository, and service
+Create Post Reaction functionality (like/dislike)
+Develop feed algorithm with pagination
+Add endpoints for user's own and liked posts
+Write unit tests for interaction services
+
+Frontend Tasks:
+
+Design and implement home feed with pagination
+Create comment interface and functionality
+Add like/dislike buttons with state management
+Implement "My Posts" and "Liked Posts" screens
+Connect to backend API for interaction operations
+
+Phase 5: Search & Polish (Day 7)
+Backend Tasks:
+
+Implement search functionality for users and posts
+Optimize database queries for performance
+Add comprehensive error handling
+Final security audits and fixes
+Complete API documentation
+
+Frontend Tasks:
+
+Implement search screen with filters
+Add loading states and error handling
+Polish UI/UX for all screens
+Implement responsive design
+Add final animations and transitions
+
+API Endpoints
+Authentication
+
+POST /api/auth/register - Register new user
+POST /api/auth/login - Login and get JWT token
+
+User Profile
+
+GET /api/users/{id} - Get user profile
+GET /api/users/me - Get current user profile
+PUT /api/users/me - Update current user profile
+POST /api/users/me/skills - Add user skill
+DELETE /api/users/me/skills/{skillId} - Remove user skill
+
+Posts
+
+GET /api/posts - Get all posts (paginated)
+GET /api/posts/{id} - Get specific post
+POST /api/posts - Create new post
+PUT /api/posts/{id} - Update post
+DELETE /api/posts/{id} - Delete post
+GET /api/users/me/posts - Get current user's posts
+
+Comments
+
+GET /api/posts/{postId}/comments - Get comments for post
+POST /api/posts/{postId}/comments - Add comment to post
+DELETE /api/posts/{postId}/comments/{commentId} - Delete comment
+
+Reactions
+
+POST /api/posts/{postId}/reactions - Add reaction to post
+DELETE /api/posts/{postId}/reactions - Remove reaction
+GET /api/users/me/liked-posts - Get current user's liked posts
+
+Search
+
+GET /api/search/users?query={query} - Search users
+GET /api/search/posts?query={query} - Search posts
+
+Testing Strategy
+Backend Tests
+
+Unit tests for services and repositories
+Integration tests for controllers
+Security tests for authentication and authorization
+Performance tests for pagination and search
+
+Frontend Tests
+
+Widget tests for key UI components
+Integration tests for screen workflows
+Mock API service tests
+
+Submission Package Checklist
+
+ Fully functional GitHub repository with README
+ Setup instructions (frontend and backend)
+ API documentation
+ Screenshots of key app screens
+ 5-15 minute video demonstration
+ Unit test coverage reports
+
+Best Practices
+Code Quality
+
+Follow clean architecture principles
+Implement proper error handling
+Use DTOs for data transfer
+Document all APIs and key functions
+Follow language-specific coding conventions
+
+Security
+
+Secure password storage with BCrypt
+JWT token validation and expiration
+Input validation and sanitization
+CORS configuration
+Proper error responses without sensitive data
+
+Performance
+
+Implement database indexing
+Use pagination for all list endpoints
+Optimize database queries
+Lazy loading of images
+Efficient state management in Flutter
